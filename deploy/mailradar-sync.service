@@ -1,0 +1,11 @@
+[Unit]
+Description=MailRadar mailbox sync (archive inbound, write back status)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/mailradar
+EnvironmentFile=/opt/mailradar/.env
+ExecStart=/usr/bin/python3 -m mailradar sync
+# 通知走 config.yaml 里配置的渠道；失败不阻塞（notify 本身 best-effort）

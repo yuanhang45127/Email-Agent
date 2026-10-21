@@ -1,0 +1,5 @@
+email,name,org,dir,sent,replied,status
+alice@partner.example.com,Alice Chen,Partner Co,alice-chen,是,是,已回复（10-18）
+bob@vendor.example.com,Bob Liu,Vendor Inc,bob-liu,是,,已发送待回复（10-15首封）
+carol@conf.example.com,Carol Wang,Conf 2026,carol-wang,,,未接触
+dave@service.example.com,Dave Zhao,Service Ops,dave-zhao,是,是,已回复（10-20）

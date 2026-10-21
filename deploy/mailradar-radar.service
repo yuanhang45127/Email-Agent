@@ -1,0 +1,11 @@
+[Unit]
+Description=MailRadar information-watch radar (headless LLM scan)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/mailradar
+EnvironmentFile=/opt/mailradar/.env
+# MAILRADAR_LLM_CLI selects the headless LLM runner (default: kimi)
+ExecStart=/opt/mailradar/radar/run_task.sh scan.md scan.log

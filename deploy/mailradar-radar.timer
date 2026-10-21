@@ -1,0 +1,9 @@
+[Unit]
+Description=Run MailRadar radar every morning
+
+[Timer]
+OnCalendar=*-*-* 08:07:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

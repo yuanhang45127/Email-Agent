@@ -1,0 +1,19 @@
+# Secrets & local state
+.env
+*.tmp
+
+# Runtime data
+archive/
+radar/logs/
+radar/state.json
+.mailradar_state.json
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+
+# OS
+.DS_Store

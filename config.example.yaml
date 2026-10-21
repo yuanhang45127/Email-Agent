@@ -1,0 +1,45 @@
+# MailRadar configuration. Copy to config.yaml and edit.
+# Sensitive values (IMAP password) come from the environment or .env — never here.
+
+imap:
+  host: mail.example.com
+  port: 993
+  user: me@example.com
+  # password: set MAILRADAR_IMAP_PASSWORD in the environment or .env
+  # folder -> direction tag used when archiving ("in" archives, "out" only records)
+  folders:
+    - ["INBOX", "in"]
+    - ['"Sent Items"', "out"]
+
+# Contact tables: any CSV with an email column. Glob patterns are relative to root.
+contacts:
+  sources:
+    - "contacts/*.csv"
+  # Map internal field names to your CSV column headers.
+  columns:
+    email: email
+    name: name
+    org: org
+    dir: dir          # archive sub-directory name per contact
+    sent: sent        # boolean column, set to `truthy` when we send
+    replied: replied  # boolean column, set to `truthy` when they reply
+    status: status    # free-text status cell, refreshed on transitions
+  truthy: "是"         # cell value that marks a boolean column true
+
+archive:
+  out_dir: archive                 # inbound mail archived under archive/<dir>/<YYYY-MM>/
+  state_file: .mailradar_state.json  # UID checkpoint (incremental sync)
+
+# Your own addresses — a self-copy left in INBOX counts as send evidence.
+self_addresses:
+  - me@example.com
+
+notify:
+  channels: ["ntfy"]   # any of: ntfy, weixin
+  ntfy:
+    topic: "http://127.0.0.1:18791/my-topic"
+    auth_file: ""      # optional file containing user:pass
+  weixin:
+    enabled: false
+    channel: "openclaw-weixin"   # OpenClaw WeChat channel name
+    to: ""                       # your WeChat user id, e.g. xxxx@im.wechat
