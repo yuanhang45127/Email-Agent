@@ -17,7 +17,6 @@ from .drafts import parse_draft, push_drafts, scan_draft_box_json
 from .notify import Notifier
 from .sync import run_sync
 
-
 def _cmd_sync(args: argparse.Namespace) -> int:
     cfg = load_config(args.config)
     summary = run_sync(cfg, full=args.full, dry_run=args.dry_run, commit=not args.no_commit)
@@ -50,6 +49,12 @@ def _cmd_notify(args: argparse.Namespace) -> int:
     return 0 if all(v == "ok" for v in results.values()) else 1
 
 
+def _cmd_panel(args: argparse.Namespace) -> int:
+    from .panel import serve
+    serve(args.config, args.host, args.port)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="mailradar", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -76,6 +81,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_notify.add_argument("body", nargs="?", default="")
     p_notify.add_argument("--channels", help="comma-separated, e.g. ntfy,weixin")
     p_notify.set_defaults(func=_cmd_notify)
+
+    p_panel = sub.add_parser("panel", help="run the local web control panel")
+    p_panel.add_argument("--host", default="127.0.0.1", help="bind host (default 127.0.0.1)")
+    p_panel.add_argument("--port", type=int, default=8790, help="bind port (default 8790)")
+    p_panel.set_defaults(func=_cmd_panel)
 
     return parser
 

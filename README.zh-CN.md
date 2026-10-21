@@ -25,6 +25,7 @@ MailRadar 围绕一条原则构建:**agent 负责准备,人负责决定。** 它
 - **草稿箱管理。** 解析本地 markdown 草稿并追加到 IMAP 草稿箱,按(主题,收件人)去重,可安全重复运行。
 - **信息雷达。** 一个无头 LLM 任务按计划扫描监控清单,按内容哈希去重,只推送真正新增的条目。
 - **多渠道通知。** ntfy 做可靠的手机推送;微信则通过 [OpenClaw](https://docs.openclaw.ai) 网关投递。
+- **本地网页控制台。** 一个零额外依赖的仪表盘(纯 Python 标准库):看联系人、跑同步、看草稿箱、推草稿、发通知——都在 `http://127.0.0.1` 上。
 - **人机协同是设计出来的。** 不自动发送、不自动删你的数据;破坏性操作默认 dry-run。
 
 ## 快速开始
@@ -86,6 +87,17 @@ python -m mailradar push <draft.md>... [--apply] [--sender-name NAME]
 python -m mailradar scan-box                 # 草稿箱只读 JSON 快照
 python -m mailradar notify "标题" "正文" [--channels ntfy,weixin]
 ```
+
+## 网页控制台
+
+一个本地仪表盘把整套引擎包起来——零额外依赖(纯 Python 标准库):
+
+```bash
+python -m mailradar panel                 # http://127.0.0.1:8790
+python -m mailradar panel --port 9000     # 自定义端口
+```
+
+在页面上你可以:查看每个联系人及其发送/回复状态、跑一次同步(预览或执行——后台运行并实时输出日志)、查看草稿箱、写草稿并推入草稿箱、发一条通知。默认绑定 `127.0.0.1`,当本地工具用,别当公共服务暴露。
 
 ## 项目结构
 

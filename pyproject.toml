@@ -20,5 +20,8 @@ mailradar = "mailradar.cli:main"
 [tool.setuptools]
 packages = ["mailradar"]
 
+[tool.setuptools.package-data]
+mailradar = ["panel_index.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

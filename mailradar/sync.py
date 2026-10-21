@@ -122,7 +122,7 @@ def run_sync(cfg: Config, *, full: bool = False, dry_run: bool = False,
                 uids = client.uid_search("ALL")
             else:
                 uids = client.uid_search(f"UID {max_uid + 1}:*")
-            uids = [u for w in uids for u in [w] if w not in known]
+            uids = [u for u in uids if u not in known]
             print(f"{folder}: {len(uids)} to process", flush=True)
 
             uids_record = dict(fstate.get("uids", {}))

@@ -40,6 +40,9 @@ and hands you a clean drafts box and a digest. You keep the send button.
   de-duplicates by content hash, and pushes only genuinely new items.
 - **Multi-channel notify.** ntfy for reliable phone push; WeChat delivery
   through an [OpenClaw](https://docs.openclaw.ai) gateway.
+- **Local web control panel.** A dependency-light dashboard (Python stdlib) to
+  view contacts, run sync, inspect the drafts box, push a draft, and send a
+  notification — all from `http://127.0.0.1`.
 - **Human-in-the-loop by construction.** No auto-send, no auto-delete of your
   data; destructive actions are dry-run by default.
 
@@ -109,6 +112,21 @@ python -m mailradar push <draft.md>... [--apply] [--sender-name NAME]
 python -m mailradar scan-box                 # read-only JSON of the drafts box
 python -m mailradar notify "标题" "正文" [--channels ntfy,weixin]
 ```
+
+## Web control panel
+
+A local dashboard wraps the whole engine — no extra dependencies (Python
+standard library only):
+
+```bash
+python -m mailradar panel                 # http://127.0.0.1:8790
+python -m mailradar panel --port 9000     # custom port
+```
+
+From the page you can: see every contact and its send/reply status, run a sync
+(preview or apply — it runs in the background and streams its log), inspect the
+drafts box, compose and push a draft, and fire a notification. It binds to
+`127.0.0.1` by default; treat it as a local tool, not a public service.
 
 ## Project layout
 

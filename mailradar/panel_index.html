@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MailRadar 控制台</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1d212b; --line:#2a2f3a;
+    --txt:#e6e9ef; --muted:#8b93a7; --acc:#4f8cff; --ok:#3ecf8e; --warn:#f5a623;
+    --bad:#ff5d5d; --chip:#232838;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--txt)}
+  header{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--panel);
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  header h1{font-size:17px;margin:0;letter-spacing:.3px}
+  header .dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+  header .dot.on{background:var(--ok)}
+  header .meta{color:var(--muted);font-size:12px;margin-left:auto;text-align:right}
+  main{max-width:1180px;margin:0 auto;padding:18px 20px 60px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:0 0 12px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;
+    padding:8px 14px;cursor:pointer;font-size:13px;transition:.15s}
+  button:hover{border-color:var(--acc)}
+  button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  input,textarea,select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);
+    padding:8px 10px;font-size:13px;font-family:inherit;width:100%}
+  textarea{min-height:90px;resize:vertical}
+  label{font-size:12px;color:var(--muted);display:block;margin:8px 0 4px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--panel)}
+  .tbl-wrap{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+  .badge{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11px;background:var(--chip);color:var(--muted)}
+  .badge.ok{background:rgba(62,207,142,.15);color:var(--ok)}
+  .badge.warn{background:rgba(245,166,35,.15);color:var(--warn)}
+  .badge.sent{background:rgba(79,140,255,.15);color:var(--acc)}
+  .muted{color:var(--muted)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+  #log{background:#0b0d11;border:1px solid var(--line);border-radius:8px;padding:10px;height:200px;
+    overflow:auto;font-family:ui-monospace,Menlo,monospace;font-size:12px;white-space:pre-wrap;color:#c8d0e0}
+  #log .err{color:var(--bad)} #log .ok{color:var(--ok)} #log .dim{color:var(--muted)}
+  .stat{display:flex;gap:18px;flex-wrap:wrap}
+  .stat .n{font-size:22px;font-weight:600}
+  .stat .l{font-size:11px;color:var(--muted)}
+  .pill{font-size:11px;padding:2px 8px;border-radius:6px;background:var(--chip);color:var(--muted)}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:600px){.split{grid-template-columns:1fr}}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="dot"></span>
+  <h1>MailRadar 控制台</h1>
+  <span class="pill" id="env">本地</span>
+  <div class="meta" id="meta">加载中…</div>
+</header>
+<main>
+  <div class="card">
+    <h2>状态</h2>
+    <div class="stat" id="stats">
+      <div><div class="n" id="st-contacts">–</div><div class="l">联系人</div></div>
+      <div><div class="n" id="st-drafts">–</div><div class="l">草稿箱</div></div>
+      <div><div class="n" id="st-sent">–</div><div class="l">已发送</div></div>
+      <div><div class="n" id="st-replied">–</div><div class="l">已回复</div></div>
+      <div><div class="n" id="st-last">–</div><div class="l">最近同步</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>操作</h2>
+    <div class="row">
+      <button class="primary" onclick="runSync(false)">同步邮箱(预览)</button>
+      <button onclick="runSync(true)">同步邮箱(执行)</button>
+      <button class="ghost" onclick="refreshAll()">刷新</button>
+    </div>
+    <label>同步结果 / 日志</label>
+    <div id="log"></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>联系人</h2>
+      <div class="tbl-wrap"><table id="contacts">
+        <thead><tr><th>姓名</th><th>机构</th><th>状态</th><th>发</th><th>回</th></tr></thead>
+        <tbody><tr><td colspan="5" class="muted">加载中…</td></tr></tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <h2>草稿箱(在箱未发送)</h2>
+      <div class="tbl-wrap"><table id="drafts">
+        <thead><tr><th>主题</th><th>收件人</th></tr></thead>
+        <tbody><tr><td colspan="2" class="muted">加载中…</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>写草稿并推入草稿箱</h2>
+      <label>主题</label><input id="d-subject" placeholder="Re: …">
+      <label>收件人</label><input id="d-to" placeholder="someone@example.com">
+      <label>正文</label><textarea id="d-body" placeholder="正文…"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" onclick="pushDraft()">推入草稿箱</button>
+        <span class="muted" style="font-size:12px">append-only,按(主题,收件人)去重;发送仍在邮件客户端手动完成</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>发送通知</h2>
+      <label>标题</label><input id="n-title" placeholder="标题">
+      <label>正文</label><textarea id="n-body" placeholder="正文…" style="min-height:60px"></textarea>
+      <label>渠道</label>
+      <div class="row" id="n-channels"></div>
+      <div class="row" style="margin-top:10px"><button class="primary" onclick="sendNotify()">发送</button></div>
+    </div>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function log(msg,cls=''){const el=$('log');const t=new Date().toLocaleTimeString();
+  el.innerHTML+=`<span class="dim">[${t}]</span> <span class="${cls}">${msg}</span>\n`;el.scrollTop=el.scrollHeight;}
+async function api(path,opts){const r=await fetch(path,opts?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(opts)}:undefined);
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j;}
+
+async function loadConfig(){try{const c=await api('/api/config');$('meta').textContent=`${c.imap_user} · 渠道: ${c.channels.join(', ')}`;
+  $('dot').classList.add('on');
+  $('n-channels').innerHTML=c.channels.map(ch=>`<label style="margin:0"><input type="checkbox" value="${ch}" ${ch==='ntfy'?'checked':''}> ${ch}</label>`).join('');
+  }catch(e){$('meta').textContent='配置加载失败';log('配置加载失败: '+e.message,'err');}}
+
+async function loadContacts(){try{const c=await api('/api/contacts');
+  $('st-contacts').textContent=c.length;
+  $('st-sent').textContent=c.filter(x=>x.sent).length;
+  $('st-replied').textContent=c.filter(x=>x.replied).length;
+  $('contacts').querySelector('tbody').innerHTML=c.length?c.map(x=>`<tr>
+    <td>${esc(x.name)}<div class="muted mono">${esc(x.email)}</div></td>
+    <td>${esc(x.org||'')}</td>
+    <td>${statusBadge(x)}</td>
+    <td>${x.sent?'<span class="badge sent">已发</span>':'<span class="muted">–</span>'}</td>
+    <td>${x.replied?'<span class="badge ok">已回</span>':'<span class="muted">–</span>'}</td></tr>`).join('')
+    :'<tr><td colspan="5" class="muted">无联系人</td></tr>';}catch(e){log('联系人: '+e.message,'err');}}
+
+function statusBadge(x){const s=x.status||'';if(/已回复/.test(s))return `<span class="badge ok">${esc(s)}</span>`;
+  if(/已发送待回复/.test(s))return `<span class="badge warn">${esc(s)}</span>`;return `<span class="badge">${esc(s||'未接触')}</span>`;}
+
+async function loadDrafts(){try{const d=await api('/api/draft-box');$('st-drafts').textContent=d.total;
+  $('drafts').querySelector('tbody').innerHTML=d.drafts.length?d.drafts.map(x=>`<tr>
+    <td>${esc(x.subject||'(无主题)')}</td><td class="mono">${esc((x.to||[]).join(', ')||x.name||'–')}</td></tr>`).join('')
+    :'<tr><td colspan="2" class="muted">草稿箱为空</td></tr>';}catch(e){log('草稿箱: '+e.message,'err');}}
+
+async function loadState(){try{const s=await api('/api/state');$('st-last').textContent=s.last_run||'从未';}catch(e){}}
+
+async function runSync(apply){const btn=event.target;btn.disabled=true;
+  log(`开始同步(${apply?'执行':'预览'})…`);
+  try{const j=await api('/api/sync',{dry_run:!apply});
+    // poll the background job until it settles
+    for(;;){await new Promise(r=>setTimeout(r,800));const s=await api('/api/jobs/'+j.job_id);
+      if(s.status==='done'){if(s.output)s.output.trim().split('\n').forEach(l=>log(l,'dim'));
+        const r=s.result||{};log(`完成: 扫描 ${r.scanned},归档 ${r.archived},发件命中 ${r.sent_hits},来信命中 ${r.reply_hits}`,'ok');
+        await Promise.all([loadContacts(),loadDrafts(),loadState()]);break;}
+      if(s.status==='error'){if(s.output)s.output.trim().split('\n').forEach(l=>log(l,'dim'));
+        log('同步失败: '+(s.error||'未知'),'err');break;}}
+  }catch(e){log('同步失败: '+e.message,'err');}finally{btn.disabled=false;}}
+
+async function pushDraft(){const subject=$('d-subject').value.trim(),to=$('d-to').value.trim(),body=$('d-body').value;
+  if(!subject||!to||!body){log('请填写主题/收件人/正文','err');return;}
+  try{const j=await api('/api/push',{subject,to,body});
+    log(`推入草稿箱: 新增 ${j.pushed},跳过 ${j.skipped}`,'ok');await loadDrafts();}
+  catch(e){log('推草稿失败: '+e.message,'err');}}
+
+async function sendNotify(){const title=$('n-title').value.trim(),body=$('n-body').value;
+  const channels=[...document.querySelectorAll('#n-channels input:checked')].map(i=>i.value);
+  if(!title){log('请填写标题','err');return;}
+  try{const j=await api('/api/notify',{title,body,channels});
+    log('通知结果: '+Object.entries(j).map(([k,v])=>`${k}=${v}`).join(', '),'ok');}
+  catch(e){log('通知失败: '+e.message,'err');}}
+
+function esc(s){return String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+async function refreshAll(){await Promise.all([loadConfig(),loadContacts(),loadDrafts(),loadState()]);}
+refreshAll();
+</script>
+</body>
+</html>
