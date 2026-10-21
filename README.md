@@ -1,3 +1,5 @@
+**English** | [简体中文](README.zh-CN.md)
+
 # MailRadar
 
 **A self-hosted mail-automation and information-watch agent.** It links your
